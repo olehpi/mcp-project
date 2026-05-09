@@ -3,6 +3,8 @@ import json
 import os
 from typing import List
 from mcp.server.fastmcp import FastMCP
+from starlette.requests import Request
+from starlette.responses import JSONResponse, Response
 
 PAPER_DIR = "papers"
 HOST = os.environ.get("HOST", "0.0.0.0")
@@ -10,6 +12,14 @@ PORT = int(os.environ.get("PORT", "8001"))
 
 # Initialize FastMCP server
 mcp = FastMCP("research", host=HOST, port=PORT)
+
+@mcp.custom_route("/", methods=["GET", "HEAD"])
+async def root(request: Request) -> Response:
+    return JSONResponse({"status": "ok", "transport": "sse"})
+
+@mcp.custom_route("/healthz", methods=["GET", "HEAD"])
+async def healthz(request: Request) -> Response:
+    return JSONResponse({"status": "ok"})
 
 @mcp.tool()
 def search_papers(topic: str, max_results: int = 5) -> List[str]:
